@@ -7,6 +7,8 @@ import session from 'express-session'
 import cors from 'cors'
 import connectRedis from "connect-redis";
 
+import {createConnection} from 'typeorm'
+
 import {ApolloServer} from 'apollo-server-express'
 import { buildSchema } from 'type-graphql';
 
@@ -18,6 +20,10 @@ import { COOKIE_NAME, __prod__ } from './constants';
 
 
 const main = async () => {
+
+    await createConnection()
+
+
     const app = express()
 
     const RedisStore = connectRedis(session)
@@ -51,9 +57,10 @@ const main = async () => {
             resolvers: [userResolver],
             validate: false
         }),
-        context: ({req, res})=>({
+        context: ({req, res })=>({
             req, 
-            res
+            res,
+            redis
         })
     })
 
