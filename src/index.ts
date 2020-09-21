@@ -15,6 +15,7 @@ import { buildSchema } from 'type-graphql';
 
 import { userResolver } from './resolvers/userResolver';
 import { COOKIE_NAME, __prod__ } from './constants';
+import { postResolver } from './resolvers/postResolver';
 
 
 
@@ -30,7 +31,7 @@ const main = async () => {
     const redis = new Redis()
     
     app.use(cors({
-        origin: process.env.CORS_ORIGIN,
+        origin: 'http://localhost:3000',
         credentials: true
     }))
 
@@ -54,7 +55,7 @@ const main = async () => {
 
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
-            resolvers: [userResolver],
+            resolvers: [userResolver, postResolver],
             validate: false
         }),
         context: ({req, res })=>({
