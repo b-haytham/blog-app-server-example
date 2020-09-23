@@ -4,10 +4,13 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    JoinTable,
     ManyToOne,
+    OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from "typeorm";
+import { Comment } from "./Comment";
 
 import { User } from "./User";
 
@@ -43,6 +46,12 @@ export class Post extends BaseEntity {
     @Field(() => User)
     @ManyToOne(() => User, (user) => user.posts)
     creator: User;
+
+
+    @Field(()=> [Comment])
+    @OneToMany(()=>Comment, comm=> comm.post, {eager: true})
+    @JoinTable()
+    comments: Comment[]
 
     @Field()
     @Column({nullable: true})

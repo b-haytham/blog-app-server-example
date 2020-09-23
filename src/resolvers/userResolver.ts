@@ -1,4 +1,4 @@
-import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
+import { Arg, Ctx, Mutation, Query, Resolver, UseMiddleware } from "type-graphql";
 import argon2 from "argon2";
 
 import { User } from "../entities/User";
@@ -8,6 +8,7 @@ import { MyContext } from "src/Context";
 import { v4 } from "uuid";
 import { sendMail } from "../sendMail";
 import { COOKIE_NAME, FORGET_PASSWORD_PREFIX } from "../constants";
+import { isAuth } from "../isAuth";
 
 @Resolver(User)
 export class userResolver {
@@ -28,6 +29,21 @@ export class userResolver {
         return user;
     }
 
+    @Query(()=>User)
+    async getUser(
+        @Arg('username') username: string
+    ){
+        const user = await User.findOne({where: {username}})
+
+        if(!user) {
+            return new ApolloError('User Do Not Exits')
+        }
+
+        return user
+    }
+
+    
+    
     @Mutation(() => User)
     async createUser(
         @Arg("username") username: string,
@@ -39,7 +55,7 @@ export class userResolver {
         const u = await userRepository.findOne({ email });
 
         if (u) {
-            return new ApolloError("user exist", "413");
+            return new ApolloError("user exist");
         }
 
         const hashedPassword = await argon2.hash(password);
@@ -66,6 +82,27 @@ export class userResolver {
 
         console.log(user);
         return user;
+    }
+
+    @Mutation(()=>User)
+    @UseMiddleware(isAuth)
+    async updateUser(
+        @Arg('userId') userId: number,
+        @Ctx() {req}:MyContext
+    ){
+        const loggedInUserId = req.session.userId
+        const userToUpdate = await User.findOne(userId)
+
+        if(!userToUpdate){
+            return new ApolloError('User Do Not Exists')
+        }
+
+        if(loggedInUserId !== userToUpdate.id ){
+            new ApolloError('Not Authorized to Update')
+        }
+
+        // update user to do
+        return userToUpdate  
     }
 
     @Mutation(() => User)
