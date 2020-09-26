@@ -29,7 +29,7 @@ export class commentResolver{
     @UseMiddleware(isAuth)
     async updateComment(
         @Arg('commentId') commentId: number,
-        @Arg('content') _: string,
+        @Arg('content') content: string,
         @Ctx() {req}: MyContext
     ){
         const comment =await Comment.findOne(commentId)
@@ -37,9 +37,24 @@ export class commentResolver{
             return new ApolloError('Error Updating Comment')
         }
 
+        let newComment 
+
+        try {
+            const result = await getConnection()
+                .createQueryBuilder()
+                .update(Comment)
+                .set({content})
+                .where("id = :id", {id: commentId})
+                .returning('*')
+                .execute()
+
+            newComment = result.raw[0]
+        } catch (error) {
+            console.log(error)
+        }
 
         // update Comment to do
-        return comment
+        return newComment
     }
 
     @Mutation()
@@ -99,15 +114,22 @@ export class commentResolver{
 
         const loggedInUserId = req.session.userId
 
+        const loggedInUser =await User.findOne(loggedInUserId)
+
         const comment = await Comment.findOne(commentId)
 
         if(!comment || comment.creator.id !== loggedInUserId){
             return new ApolloError('Error deleting Post')
         }
 
-
+        try {
+            
+            await Comment.delete({id: commentId, creator: loggedInUser})
+        } catch (error) {
+            console.log(error)
+        }
 
         // delete Comment to do
-        return comment
+        return true
     }
 }

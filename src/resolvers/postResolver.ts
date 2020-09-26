@@ -6,6 +6,7 @@ import { getConnection, getRepository } from "typeorm";
 import { User } from "../entities/User";
 import { ApolloError } from "apollo-server-express";
 import { isAuth } from "../isAuth";
+import { UpdatePostInputType } from "../types/UpdatePostInputType";
 
 @Resolver(Post)
 export class postResolver {
@@ -63,6 +64,7 @@ export class postResolver {
     @UseMiddleware(isAuth)
     async updatePost(
         @Arg('postId') postId: number,
+        @Arg('input') input:  UpdatePostInputType,
         @Ctx() {req}:MyContext
     ){
         const loggedInUserId = req.session.userId
@@ -76,9 +78,23 @@ export class postResolver {
             return new ApolloError('Not Authorized To Update')
         }
 
+        let newPost
 
-        // Update Post to do
-        return postToUpdate
+        try {
+            const result = await getConnection()
+                .createQueryBuilder()
+                .update(Post)
+                .set(input)
+                .where("id = :id", {id: postToUpdate.id})
+                .returning('*')
+                .execute()
+            newPost = result.raw[0]
+        } catch (error) {
+            console.log(error)
+        }
+
+        // Check to do
+        return newPost
     }
 
     @Mutation(()=>Boolean)
@@ -99,8 +115,10 @@ export class postResolver {
         }
 
 
-        // delete Post to Do
-        return postToDelete
+        // check 
+        await Post.delete({id: postId, creatorId: loggedInUserId})
+
+        return true
     }
 
     @Query(()=>Post)

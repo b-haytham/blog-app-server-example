@@ -1,5 +1,6 @@
 import { Field, ID, ObjectType } from "type-graphql";
-import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, JoinTable, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Like } from "./Like";
 import { Post } from "./Post";
 import { User } from "./User";
 
@@ -15,7 +16,7 @@ export class Comment extends BaseEntity {
     @Column()
     content: string
 
-
+ 
     @Field(()=> User)
     @ManyToOne(()=> User, (user)=> user.comments)
     creator: User
@@ -25,6 +26,11 @@ export class Comment extends BaseEntity {
     @ManyToOne(()=> Post, (post)=> post.comments)
     post: Post
 
+
+    @Field(()=> [Like])
+    @JoinTable()
+    @OneToMany(()=>Like ,like=> like.comment, {eager: true})
+    likes: Like[]
 
     @Field(() => String)
     @CreateDateColumn()

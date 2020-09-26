@@ -9,6 +9,7 @@ import { v4 } from "uuid";
 import { sendMail } from "../sendMail";
 import { COOKIE_NAME, FORGET_PASSWORD_PREFIX } from "../constants";
 import { isAuth } from "../isAuth";
+import { UpdateUserInputType } from "../types/UpdateUserInputType";
 
 @Resolver(User)
 export class userResolver {
@@ -82,12 +83,13 @@ export class userResolver {
 
         console.log(user);
         return user;
-    }
+    } 
 
     @Mutation(()=>User)
     @UseMiddleware(isAuth)
     async updateUser(
         @Arg('userId') userId: number,
+        @Arg('input') input: UpdateUserInputType,
         @Ctx() {req}:MyContext
     ){
         const loggedInUserId = req.session.userId
@@ -101,8 +103,23 @@ export class userResolver {
             new ApolloError('Not Authorized to Update')
         }
 
+        let newUser
+        try {
+            const result = await getConnection()
+                .createQueryBuilder()
+                .update(User)
+                .set(input)
+                .where("id = :id", {id: userToUpdate.id})
+                .returning('*')
+                .execute()
+
+            newUser = result.raw[0]
+
+        } catch (error) {
+            console.log(error)
+        }
         // update user to do
-        return userToUpdate  
+        return newUser  
     }
 
     @Mutation(() => User)

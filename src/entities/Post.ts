@@ -11,6 +11,7 @@ import {
     UpdateDateColumn,
 } from "typeorm";
 import { Comment } from "./Comment";
+import { Like } from "./Like";
 
 import { User } from "./User";
 
@@ -34,6 +35,11 @@ export class Post extends BaseEntity {
     @Column()
     description: string;
 
+
+    @Field({nullable: true})
+    @Column({nullable: true})
+    thumbnail?: string
+
     //content????
     @Field(() => String)
     @Column()
@@ -47,6 +53,11 @@ export class Post extends BaseEntity {
     @ManyToOne(() => User, (user) => user.posts)
     creator: User;
 
+
+    @Field(()=> [Like])
+    @JoinTable()
+    @OneToMany(()=>Like, like=> like.post, {eager: true})
+    likes: Like[]
 
     @Field(()=> [Comment])
     @OneToMany(()=>Comment, comm=> comm.post, {eager: true})

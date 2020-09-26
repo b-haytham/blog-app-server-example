@@ -10,6 +10,7 @@ import {
     UpdateDateColumn,
 } from "typeorm";
 import { Comment } from "./Comment";
+import { Like } from "./Like";
 import { Post } from "./Post";
 
 @ObjectType()
@@ -47,6 +48,11 @@ export class User extends BaseEntity {
     @OneToMany(() => Comment, (comm) => comm.creator, { eager: true })
     @JoinTable()
     comments: Comment[];
+
+    @Field(()=> [Like])
+    @JoinTable()
+    @OneToMany(()=>Like, like=> like.creator, {eager: true})
+    likes: Like[]
 
     @Column({ nullable: true })
     @Field({ nullable: true })
