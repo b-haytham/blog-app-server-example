@@ -64,7 +64,7 @@ export class Post extends BaseEntity {
     @JoinTable()
     comments: Comment[]
 
-    @Field()
+    @Field({nullable: true})
     @Column({nullable: true})
     tags: TAGS;
 

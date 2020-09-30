@@ -18,7 +18,7 @@ export class UpdatePostInputType {
     @Field(() => String)
     content: string;
 
-    @Field()
-    published: boolean;
+    @Field({nullable: true})
+    published?: boolean;
 
 }

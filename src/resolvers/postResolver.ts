@@ -1,5 +1,12 @@
 import { Post } from "../entities/Post";
-import { Arg, Ctx, Mutation, Query, Resolver, UseMiddleware } from "type-graphql";
+import {
+    Arg,
+    Ctx,
+    Mutation,
+    Query,
+    Resolver,
+    UseMiddleware,
+} from "type-graphql";
 
 import { MyContext } from "src/Context";
 import { getConnection, getRepository } from "typeorm";
@@ -10,6 +17,36 @@ import { UpdatePostInputType } from "../types/UpdatePostInputType";
 
 @Resolver(Post)
 export class postResolver {
+    @Query(() => [Post])
+    @UseMiddleware(isAuth)
+    async getLoggedInUserPosts(@Ctx() { req }: MyContext) {
+        const loggedInUserId = req.session.userId;
+
+        const posts = await Post.find({ where: { creatorId: loggedInUserId } });
+
+        return posts
+    }
+
+    @Query(() => Post)
+    @UseMiddleware(isAuth)
+    async getPostById(
+        @Arg('postId') postId: number,
+        @Ctx() { req }: MyContext
+    ) {
+        const loggedInUserId = req.session.userId;
+
+        const post = await Post.findOne(postId);
+        if(!post) {
+            return new ApolloError('Post do not exist')
+        }
+
+        if(loggedInUserId !== post.creatorId){
+            return new ApolloError('Not Authorized To get Post')
+        }
+
+        return post
+    }
+
     @Mutation(() => Post)
     @UseMiddleware(isAuth)
     async createPost(
@@ -29,7 +66,7 @@ export class postResolver {
             return new ApolloError("blbal");
         }
 
-        let post
+        let post;
         try {
             const result = await getConnection()
                 .createQueryBuilder()
@@ -45,7 +82,7 @@ export class postResolver {
                 .execute();
 
             post = result.raw[0];
-           
+
             await getConnection()
                 .createQueryBuilder()
                 .relation(User, "posts")
@@ -59,81 +96,76 @@ export class postResolver {
         return post;
     }
 
-
-    @Mutation(()=>Post)
+    @Mutation(() => Post)
     @UseMiddleware(isAuth)
     async updatePost(
-        @Arg('postId') postId: number,
-        @Arg('input') input:  UpdatePostInputType,
-        @Ctx() {req}:MyContext
-    ){
-        const loggedInUserId = req.session.userId
-        const postToUpdate = await Post.findOne(postId)
+        @Arg("postId") postId: number,
+        @Arg("input") input: UpdatePostInputType,
+        @Ctx() { req }: MyContext
+    ) {
+        const loggedInUserId = req.session.userId;
+        const postToUpdate = await Post.findOne(postId);
 
-        if(!postToUpdate){
-            return new ApolloError('Post Do Not Exists')
+        if (!postToUpdate) {
+            return new ApolloError("Post Do Not Exists");
         }
 
-        if(loggedInUserId !== postToUpdate.creatorId){
-            return new ApolloError('Not Authorized To Update')
+        if (loggedInUserId !== postToUpdate.creatorId) {
+            return new ApolloError("Not Authorized To Update");
         }
 
-        let newPost
+        let newPost;
 
         try {
             const result = await getConnection()
                 .createQueryBuilder()
                 .update(Post)
                 .set(input)
-                .where("id = :id", {id: postToUpdate.id})
-                .returning('*')
-                .execute()
-            newPost = result.raw[0]
+                .where("id = :id", { id: postToUpdate.id })
+                .returning("*")
+                .execute();
+            newPost = result.raw[0];
         } catch (error) {
-            console.log(error)
+            console.log(error);
         }
 
         // Check to do
-        return newPost
+        return newPost;
     }
 
-    @Mutation(()=>Boolean)
+    @Mutation(() => Boolean)
     @UseMiddleware(isAuth)
-    async deletePost(
-        @Arg('postId') postId: number,
-        @Ctx() {req}:MyContext
-    ){
-        const loggedInUserId = req.session.userId
-        const postToDelete = await Post.findOne(postId)
+    async deletePost(@Arg("postId") postId: number, @Ctx() { req }: MyContext) {
+        const loggedInUserId = req.session.userId;
+        const postToDelete = await Post.findOne(postId);
 
-        if(!postToDelete){
-            return new ApolloError('Post Do Not Exists')
+        if (!postToDelete) {
+            return new ApolloError("Post Do Not Exists");
         }
 
-        if(loggedInUserId !== postToDelete.creatorId){
-            return new ApolloError('Not Authorized To Update')
+        if (loggedInUserId !== postToDelete.creatorId) {
+            return new ApolloError("Not Authorized To Update");
         }
 
+        // check
+        await Post.delete({ id: postId, creatorId: loggedInUserId });
 
-        // check 
-        await Post.delete({id: postId, creatorId: loggedInUserId})
-
-        return true
+        return true;
     }
 
-    @Query(()=>Post)
-    async getPublicPostById(
-        @Arg('postId') postId : number
-    ){
-        const postRepo = getRepository(Post)
-        const p = await postRepo.findOne(postId, {where: {published: false}, relations: ["creator"]})
-        
-        if(!p) {
-            return new ApolloError('Post Do not Exist')
+    @Query(() => Post)
+    async getPublicPostById(@Arg("postId") postId: number) {
+        const postRepo = getRepository(Post);
+        const p = await postRepo.findOne(postId, {
+            where: { published: false },
+            relations: ["creator"],
+        });
+
+        if (!p) {
+            return new ApolloError("Post Do not Exist");
         }
 
-        console.log(p)
-        return p
+        console.log(p);
+        return p;
     }
-
 }
