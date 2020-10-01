@@ -16,6 +16,8 @@ import { buildSchema } from 'type-graphql';
 import { userResolver } from './resolvers/userResolver';
 import { COOKIE_NAME, __prod__ } from './constants';
 import { postResolver } from './resolvers/postResolver';
+import { commentResolver } from './resolvers/commentResolver';
+import { likeResolver } from './resolvers/likeResolver';
 
 
 
@@ -55,7 +57,7 @@ const main = async () => {
 
     const apolloServer = new ApolloServer({
         schema: await buildSchema({
-            resolvers: [userResolver, postResolver],
+            resolvers: [userResolver, postResolver, commentResolver, likeResolver],
             validate: false
         }),
         context: ({req, res })=>({

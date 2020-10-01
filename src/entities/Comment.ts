@@ -16,11 +16,19 @@ export class Comment extends BaseEntity {
     @Column()
     content: string
 
+
+    @Field()
+    @Column()
+    creatorId: number
  
     @Field(()=> User)
     @ManyToOne(()=> User, (user)=> user.comments)
     creator: User
 
+
+    @Field()
+    @Column()
+    postId: number
 
     @Field(()=>Post)
     @ManyToOne(()=> Post, (post)=> post.comments)

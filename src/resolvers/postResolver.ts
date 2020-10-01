@@ -24,27 +24,27 @@ export class postResolver {
 
         const posts = await Post.find({ where: { creatorId: loggedInUserId } });
 
-        return posts
+        return posts;
     }
 
     @Query(() => Post)
     @UseMiddleware(isAuth)
     async getPostById(
-        @Arg('postId') postId: number,
+        @Arg("postId") postId: number,
         @Ctx() { req }: MyContext
     ) {
         const loggedInUserId = req.session.userId;
 
         const post = await Post.findOne(postId);
-        if(!post) {
-            return new ApolloError('Post do not exist')
+        if (!post) {
+            return new ApolloError("Post do not exist");
         }
 
-        if(loggedInUserId !== post.creatorId){
-            return new ApolloError('Not Authorized To get Post')
+        if (loggedInUserId !== post.creatorId) {
+            return new ApolloError("Not Authorized To get Post");
         }
 
-        return post
+        return post;
     }
 
     @Mutation(() => Post)
@@ -53,6 +53,7 @@ export class postResolver {
         @Arg("description") description: string,
         @Arg("title") title: string,
         @Arg("content") content: string,
+        @Arg("publish") publish: boolean,
         @Ctx() { req }: MyContext
     ) {
         const userId = req.session.userId;
@@ -77,6 +78,7 @@ export class postResolver {
                     creatorId: u.id,
                     description,
                     content,
+                    published: publish,
                 })
                 .returning("*")
                 .execute();
@@ -153,19 +155,33 @@ export class postResolver {
         return true;
     }
 
+    @Query(() => [Post])
+    async getPublicPosts() {
+        const posts = await Post.find({
+            where: { published: true },
+            relations: ["creator"],
+        });
+        return posts;
+    }
+
     @Query(() => Post)
     async getPublicPostById(@Arg("postId") postId: number) {
         const postRepo = getRepository(Post);
         const p = await postRepo.findOne(postId, {
-            where: { published: false },
-            relations: ["creator"],
+            where: { published: true },
+            relations: ["creator", "comments", "likes"],
         });
 
+        
         if (!p) {
             return new ApolloError("Post Do not Exist");
         }
-
-        console.log(p);
+  
+        
+          
+        console.log(p.comments);
         return p;
     }
+
+    
 }

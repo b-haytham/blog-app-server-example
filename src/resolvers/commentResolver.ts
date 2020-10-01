@@ -11,6 +11,19 @@ import { User } from "../entities/User";
 @Resolver(Comment)
 export class commentResolver{
 
+    @Query(()=>[Comment])
+    async getCommentsByPostId(
+        @Arg('postId') postId: number
+    ){
+
+        const comments = Comment.find({where: {postId: postId}, relations: ["creator"]})
+
+
+        console.log(comments)
+        return comments
+    }
+
+
     @Query(()=>Comment)
     async getCommentById(
         @Arg('commentId') commentId: number
@@ -57,7 +70,7 @@ export class commentResolver{
         return newComment
     }
 
-    @Mutation()
+    @Mutation(()=>Comment)
     @UseMiddleware(isAuth)
     async createComment(
         @Arg('postId') postId: number,
@@ -79,13 +92,16 @@ export class commentResolver{
                 .insert()
                 .into(Comment)
                 .values({
+                    creatorId: loggedInUserId,
                     content,
                 })
                 .returning('*')
                 .execute()
-            comment = result.raw[0]
+                
+            comment= result.raw[0]
             
-            // to do make relation better
+
+         // to do make relation better
             await getConnection()
                 .createQueryBuilder()
                 .relation(Post, 'comments')
@@ -99,6 +115,7 @@ export class commentResolver{
                 .add(comment)
         } catch (error) {
             console.log(error)
+            return new ApolloError(error.message)
         }
         return comment
     }
