@@ -88,22 +88,16 @@ export class userResolver {
     @Mutation(()=>User)
     @UseMiddleware(isAuth)
     async updateUser(
-        @Arg('userId') userId: number,
         @Arg('input') input: UpdateUserInputType,
         @Ctx() {req}:MyContext
     ){
         const loggedInUserId = req.session.userId
-        const userToUpdate = await User.findOne(userId)
+        const userToUpdate = await User.findOne(loggedInUserId)
 
         if(!userToUpdate){
             return new ApolloError('User Do Not Exists')
         }
 
-        if(loggedInUserId !== userToUpdate.id ){
-            new ApolloError('Not Authorized to Update')
-        }
-
-        let newUser
         try {
             const result = await getConnection()
                 .createQueryBuilder()
@@ -113,13 +107,14 @@ export class userResolver {
                 .returning('*')
                 .execute()
 
-            newUser = result.raw[0]
+            return result.raw[0]
 
         } catch (error) {
             console.log(error)
+            return new ApolloError('Cant update user')
         }
         // update user to do
-        return newUser  
+          
     }
 
     @Mutation(() => User)

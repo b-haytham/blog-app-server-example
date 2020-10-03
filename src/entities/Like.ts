@@ -26,6 +26,9 @@ export class Like extends BaseEntity {
     @Column({nullable: true})
     commentId: number
 
+
+    @Field()
+    @Column()
     creatorId: number
 
     @Field(()=> Post)

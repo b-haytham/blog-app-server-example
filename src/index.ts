@@ -67,7 +67,7 @@ const main = async () => {
         })
     })
 
-    apolloServer.applyMiddleware({app, cors: false})
+    apolloServer.applyMiddleware({app, cors: false, bodyParserConfig:{limit: '3mb'}})
 
     app.listen(8000, ()=> {
         console.log('>>>> Listening on http://localhost:8000')

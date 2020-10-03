@@ -6,7 +6,7 @@ import { Field, InputType } from "type-graphql";
 export class UpdateUserInputType {
 
     @Field()
-    usename: string
+    username: string
 
     @Field({ nullable: true })
     first_name?: string;

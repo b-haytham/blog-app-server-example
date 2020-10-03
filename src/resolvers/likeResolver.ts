@@ -81,13 +81,13 @@ const dislikePost = async(postId: number, creatorId: number) => {
             .delete()
             .from(Like)
             .where('postId = :postId', {postId})
-            .andWhere('creatorId = : creatorId', {creatorId})
+            .andWhere('creatorId = :creatorId', {creatorId})
             .returning('*')
             .execute()
         return result.raw[0]
     } catch (error) {
         console.log(error)
-        return error
+        throw error
     }
 }
 
@@ -100,13 +100,13 @@ const dislikeComment = async(commentId: number, creatorId: number) => {
             .delete()
             .from(Like)
             .where('commentId = :commentId', {commentId})
-            .andWhere('creatorId = : creatorId', {creatorId})
+            .andWhere('creatorId = :creatorId', {creatorId})
             .returning('*')
             .execute()
         return result.raw[0]
     } catch (error) {
         console.log(error)
-        return error
+        throw error
     }
 }
 
@@ -119,6 +119,7 @@ const likePost = async (postId: number, creatorId: number) => {
             .insert()
             .into(Like)
             .values({
+                parent: "POST",
                 creatorId,
                 postId
             })
@@ -142,7 +143,7 @@ const likePost = async (postId: number, creatorId: number) => {
         return like
     } catch (error) {
         console.log(error)
-        return error
+        throw Error(error.message)
     }
     
 
@@ -157,6 +158,7 @@ const likeComment = async (commentId: number, creatorId: number) => {
             .insert()
             .into(Like)
             .values({
+                parent: "COMMENT",
                 creatorId,
                 commentId
             })
@@ -180,7 +182,7 @@ const likeComment = async (commentId: number, creatorId: number) => {
         return like
     } catch (error) {
         console.log(error)
-        return error
+        throw error
     }
     
 

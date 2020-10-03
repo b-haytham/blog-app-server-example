@@ -92,6 +92,7 @@ export class commentResolver{
                 .insert()
                 .into(Comment)
                 .values({
+                    postId: postId,
                     creatorId: loggedInUserId,
                     content,
                 })
@@ -142,10 +143,9 @@ export class commentResolver{
         try {
             
             await Comment.delete({id: commentId, creator: loggedInUser})
-        } catch (error) {
+        }    catch (error) {
             console.log(error)
         }
-
         // delete Comment to do
         return true
     }
