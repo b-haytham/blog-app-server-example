@@ -10,7 +10,7 @@ import {
 } from "type-graphql";
 
 import { MyContext } from "src/Context";
-import { getConnection, getRepository } from "typeorm";
+import { getConnection, getRepository, Like } from "typeorm";
 import { User } from "../entities/User";
 import { ApolloError } from "apollo-server-express";
 import { isAuth } from "../isAuth";
@@ -22,15 +22,33 @@ import { CreatePostInputType } from "../types/CreatePostInputType";
 export class postResolver {
     @Query(() => [Post])
     @UseMiddleware(isAuth)
-    async getLoggedInUserPosts(@Ctx() { req }: MyContext) {
+    async getLoggedInUserPosts(
+        @Arg('query') query: string,
+        @Ctx() { req }: MyContext
+    ) {
         const loggedInUserId = req.session.userId;
 
-        const posts = await Post.find({
-            where: { creatorId: loggedInUserId },
-            relations: ["creator", "comments", "likes"],
-        });
+        if(query.length === 0) {
 
-        return posts;
+            const posts = await Post.find({
+                where: { creatorId: loggedInUserId },
+                relations: ["creator", "comments", "likes"],
+            });
+    
+            return posts;
+        }else {
+            const posts = await Post.find({
+                where: [
+                    { creatorId: loggedInUserId, title: Like(`%${query}%`)},
+                    { creatorId: loggedInUserId, description: Like(`%${query}%`)},
+                    { creatorId: loggedInUserId, tags: Like(`%${query}%`)},
+                ],
+                relations: ["creator", "comments", "likes"]
+            })
+
+            return posts
+        }
+
     }
 
     @Query(() => Post)
@@ -171,12 +189,28 @@ export class postResolver {
     }
 
     @Query(() => [Post])
-    async getPublicPosts() {
-        const posts = await Post.find({
-            where: { published: true },
-            relations: ["creator", "comments", "likes"],
-        });
-        return posts;
+    async getPublicPosts(
+        @Arg('query') query: string
+    ) {
+        if(query.length === 0){
+            const posts = await Post.find({
+                where: { published: true },
+                relations: ["creator", "comments", "likes"],
+            });
+            return posts;
+        }else{
+            const posts = await Post.find({
+                where: [
+                    {published: true , title: Like(`%${query}%`)},
+                    {published: true , description: Like(`%${query}%`)},
+                    {published: true , tags: Like(`%${query}%`)},
+                    {published: true , description: Like(`%${query}%`)},
+                    
+                ],
+                relations: ["creator", "comments", "likes"],
+            })
+            return posts
+        }
     }
 
     @Query(() => Post)
