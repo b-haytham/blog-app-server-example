@@ -17,6 +17,9 @@ export class UpdateUserInputType {
     @Field({ nullable: true })
     avatar?: string;
 
+    @Field({nullable: true})
+    short_biography?: string
+
     @Field({ nullable: true })
     studied_at?: string;
 

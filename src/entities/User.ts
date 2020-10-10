@@ -39,6 +39,10 @@ export class User extends BaseEntity {
     @Column()
     password: string;
 
+    @Field({nullable: true})
+    @Column({nullable: true})
+    short_biography: string
+
     @JoinTable()
     @OneToMany(() => Post, (post) => post.creator, { eager: true })
     @Field(() => [Post])

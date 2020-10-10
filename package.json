@@ -13,6 +13,7 @@
     "@types/nodemailer": "^6.4.0",
     "apollo-server-express": "^2.17.0",
     "argon2": "^0.27.0",
+    "base64-img": "^1.0.4",
     "class-validator": "^0.12.2",
     "connect-redis": "^5.0.0",
     "cors": "^2.8.5",
@@ -21,13 +22,14 @@
     "express-session": "^1.17.1",
     "graphql": "^15.3.0",
     "graphql-type-json": "^0.3.2",
+    "graphql-upload": "^11.0.0",
     "ioredis": "^4.17.3",
     "nodemailer": "^6.4.11",
     "pg": "^8.3.3",
     "reflect-metadata": "^0.1.13",
+    "short-uuid": "^4.1.0",
     "type-graphql": "^1.0.0",
-    "typeorm": "^0.2.26",
-    "uuid": "^8.3.0"
+    "typeorm": "^0.2.26"
   },
   "devDependencies": {
     "@types/connect-redis": "0.0.14",

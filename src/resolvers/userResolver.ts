@@ -1,4 +1,11 @@
-import { Arg, Ctx, Mutation, Query, Resolver, UseMiddleware } from "type-graphql";
+import {
+    Arg,
+    Ctx,
+    Mutation,
+    Query,
+    Resolver,
+    UseMiddleware,
+} from "type-graphql";
 import argon2 from "argon2";
 
 import { User } from "../entities/User";
@@ -18,7 +25,7 @@ export class userResolver {
         if (!req.session.userId) {
             return null;
         }
-        const user = await User.findOne(req.session.userId)
+        const user = await User.findOne(req.session.userId);
 
         // const user = await getRepository(User)
         //     .createQueryBuilder("user")
@@ -30,21 +37,17 @@ export class userResolver {
         return user;
     }
 
-    @Query(()=>User)
-    async getUser(
-        @Arg('username') username: string
-    ){
-        const user = await User.findOne({where: {username}})
+    @Query(() => User)
+    async getUser(@Arg("username") username: string) {
+        const user = await User.findOne({ where: { username } });
 
-        if(!user) {
-            return new ApolloError('User Do Not Exits')
+        if (!user) {
+            return new ApolloError("User Do Not Exits");
         }
 
-        return user
+        return user;
     }
 
-    
-    
     @Mutation(() => User)
     async createUser(
         @Arg("username") username: string,
@@ -83,19 +86,19 @@ export class userResolver {
 
         console.log(user);
         return user;
-    } 
+    }
 
-    @Mutation(()=>User)
+    @Mutation(() => User)
     @UseMiddleware(isAuth)
     async updateUser(
-        @Arg('input') input: UpdateUserInputType,
-        @Ctx() {req}:MyContext
-    ){
-        const loggedInUserId = req.session.userId
-        const userToUpdate = await User.findOne(loggedInUserId)
+        @Arg("input") input: UpdateUserInputType,
+        @Ctx() { req }: MyContext
+    ) {
+        const loggedInUserId = req.session.userId;
+        const userToUpdate = await User.findOne(loggedInUserId);
 
-        if(!userToUpdate){
-            return new ApolloError('User Do Not Exists')
+        if (!userToUpdate) {
+            return new ApolloError("User Do Not Exists");
         }
 
         try {
@@ -103,18 +106,16 @@ export class userResolver {
                 .createQueryBuilder()
                 .update(User)
                 .set(input)
-                .where("id = :id", {id: userToUpdate.id})
-                .returning('*')
-                .execute()
+                .where("id = :id", { id: userToUpdate.id })
+                .returning("*")
+                .execute();
 
-            return result.raw[0]
-
+            return result.raw[0];
         } catch (error) {
-            console.log(error)
-            return new ApolloError('Cant update user')
+            console.log(error);
+            return new ApolloError("Cant update user");
         }
         // update user to do
-          
     }
 
     @Mutation(() => User)
@@ -169,6 +170,36 @@ export class userResolver {
         );
 
         return true;
+    }
+
+    @Mutation(() => Boolean)
+    async changePassword(
+        @Arg("token") token: string,
+        @Arg("password") password: string,
+        @Ctx() { redis }: MyContext
+    ) {
+        const key = FORGET_PASSWORD_PREFIX + token;
+        const userId = await redis.get(key);
+        if (!userId) {
+            return new ApolloError("Token Expired");
+        }
+
+        const userIdNum = parseInt(userId);
+        const user = await User.findOne(userIdNum);
+
+        if (!user) {
+            return new ApolloError("User no longer Exist");
+        }
+
+        await User.update(
+            { id: userIdNum },
+            {
+                password: await argon2.hash(password),
+            }
+        );
+
+        await redis.del(key);
+        return true
     }
 
     @Mutation(() => Boolean)

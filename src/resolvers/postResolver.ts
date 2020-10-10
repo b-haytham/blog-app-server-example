@@ -6,6 +6,7 @@ import {
     Query,
     Resolver,
     UseMiddleware,
+    
 } from "type-graphql";
 
 import { MyContext } from "src/Context";
@@ -14,6 +15,8 @@ import { User } from "../entities/User";
 import { ApolloError } from "apollo-server-express";
 import { isAuth } from "../isAuth";
 import { UpdatePostInputType } from "../types/UpdatePostInputType";
+import { CreatePostInputType } from "../types/CreatePostInputType";
+
 
 @Resolver(Post)
 export class postResolver {
@@ -22,7 +25,10 @@ export class postResolver {
     async getLoggedInUserPosts(@Ctx() { req }: MyContext) {
         const loggedInUserId = req.session.userId;
 
-        const posts = await Post.find({ where: { creatorId: loggedInUserId } });
+        const posts = await Post.find({
+            where: { creatorId: loggedInUserId },
+            relations: ["creator", "comments", "likes"],
+        });
 
         return posts;
     }
@@ -50,10 +56,7 @@ export class postResolver {
     @Mutation(() => Post)
     @UseMiddleware(isAuth)
     async createPost(
-        @Arg("description") description: string,
-        @Arg("title") title: string,
-        @Arg("content") content: string,
-        @Arg("publish") publish: boolean,
+        @Arg('input') input: CreatePostInputType , 
         @Ctx() { req }: MyContext
     ) {
         const userId = req.session.userId;
@@ -67,19 +70,30 @@ export class postResolver {
             return new ApolloError("blbal");
         }
 
+        const values = {
+            title : input.title,
+            description: input.description,
+            content: input.content,
+            category: input.category,
+            tags: input.tags,
+            published: input.published,
+            creatorId: u.id
+        }
+        if(input.thumbnail) {
+            //@ts-ignore
+            values.thumbnail = input.thumbnail
+        }
+
+
+
+
         let post;
         try {
             const result = await getConnection()
                 .createQueryBuilder()
                 .insert()
                 .into(Post)
-                .values({
-                    title,
-                    creatorId: u.id,
-                    description,
-                    content,
-                    published: publish,
-                })
+                .values(values)
                 .returning("*")
                 .execute();
 
@@ -92,6 +106,7 @@ export class postResolver {
                 .add([post]);
         } catch (error) {
             console.log("ERRRRR", error);
+            return new ApolloError(error)
         }
 
         console.log(post);
@@ -159,7 +174,7 @@ export class postResolver {
     async getPublicPosts() {
         const posts = await Post.find({
             where: { published: true },
-            relations: ["creator"],
+            relations: ["creator", "comments", "likes"],
         });
         return posts;
     }
@@ -172,16 +187,14 @@ export class postResolver {
             relations: ["creator", "comments", "likes"],
         });
 
-        
         if (!p) {
             return new ApolloError("Post Do not Exist");
         }
-  
-        
-          
+
         console.log(p.comments);
         return p;
     }
+
 
     
 }

@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from "type-graphql";
+import { Field, ID, ObjectType, registerEnumType } from "type-graphql";
 import {
     BaseEntity,
     Column,
@@ -15,10 +15,12 @@ import { Like } from "./Like";
 
 import { User } from "./User";
 
-enum TAGS {
-    TECHNOLOGY,
-    PROGRAMMING,
-}
+import {Category} from '../types/Category'
+
+registerEnumType(Category, {
+    name: 'Category'
+})
+
 
 @ObjectType()
 @Entity()
@@ -64,9 +66,17 @@ export class Post extends BaseEntity {
     @JoinTable()
     comments: Comment[]
 
+    @Field(()=> Category, {nullable: true})
+    @Column({
+        type: 'enum',
+        enum: Category,
+        nullable: true
+    })
+    category: Category
+
     @Field({nullable: true})
     @Column({nullable: true})
-    tags: TAGS;
+    tags: string;
 
     @Field()
     @Column({ default: false })
@@ -80,3 +90,4 @@ export class Post extends BaseEntity {
     @UpdateDateColumn()
     updated_at: Date;
 }
+

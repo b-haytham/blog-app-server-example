@@ -1,0 +1,16 @@
+export enum Category {
+    Technology = 'Technology',
+    Health = 'Health',
+    Science = 'Science',
+    Business = 'Business',
+    Culture = "Culture",
+    Politics = "Politics",
+    Relationships = "Relationships",
+    Startups = "Startups",
+    Ai = "Ai",
+    ComputerScience = "Computer Science",
+    Programming = "Programming",
+    Cryptocurrency = "Cryptocurrency",
+    Productivity = "Productivity",
+    Education = "Education",
+}

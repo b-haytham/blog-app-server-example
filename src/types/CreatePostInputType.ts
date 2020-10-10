@@ -1,31 +1,28 @@
 import { Field, InputType } from "type-graphql";
 import { Category } from "./Category";
 
-
 @InputType()
-export class UpdatePostInputType {
+export class CreatePostInputType {
 
     @Field()
-    title: string;
+    title: string
 
     @Field()
-    description: string;
-
+    description: string
 
     @Field({nullable: true})
     thumbnail?: string
 
-    //content????
-    @Field(() => String)
-    content: string;
-
-    @Field()
-    published: boolean;
-
-    @Field()
-    tags?: string 
+    @Field(()=>String)
+    content: string
 
     @Field(()=> Category)
     category: Category
 
+    @Field({nullable: true})
+    tags?: string
+
+    @Field()
+    published: boolean
 }
+
