@@ -181,6 +181,7 @@ export class postResolver {
             return new ApolloError("Not Authorized To Update");
         }
 
+        
         // check
         await Post.delete({ id: postId, creatorId: loggedInUserId });
 
@@ -191,11 +192,14 @@ export class postResolver {
     async getPublicPosts(
         @Arg('query') query: string
     ) {
+
+        
         if(query.length === 0){
             const posts = await Post.find({
                 where: { published: true },
                 relations: ["creator", "comments", "likes"],
             });
+            
             return posts;
         }else{
             const posts = await Post.find({
