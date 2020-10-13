@@ -1,3 +1,4 @@
+import { GraphQLJSONObject } from "graphql-type-json";
 import { Field, InputType } from "type-graphql";
 import { Category } from "./Category";
 
@@ -16,8 +17,8 @@ export class UpdatePostInputType {
     thumbnail?: string
 
     //content????
-    @Field(() => String)
-    content: string;
+    @Field(() => GraphQLJSONObject)
+    content: JSON;
 
     @Field()
     published: boolean;

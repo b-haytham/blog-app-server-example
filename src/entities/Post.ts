@@ -16,6 +16,7 @@ import { Like } from "./Like";
 import { User } from "./User";
 
 import {Category} from '../types/Category'
+import { GraphQLJSONObject } from "graphql-type-json";
 
 registerEnumType(Category, {
     name: 'Category'
@@ -43,9 +44,9 @@ export class Post extends BaseEntity {
     thumbnail?: string
 
     //content????
-    @Field(() => String)
-    @Column()
-    content: string;
+    @Field(() => GraphQLJSONObject)
+    @Column({type: 'json'})
+    content: JSON;
 
     @Field()
     @Column()

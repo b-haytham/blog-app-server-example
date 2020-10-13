@@ -1,3 +1,4 @@
+import { GraphQLJSONObject } from "graphql-type-json";
 import { Field, ID, ObjectType } from "type-graphql";
 import { BaseEntity, Column, CreateDateColumn, Entity, JoinTable, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Like } from "./Like";
@@ -12,9 +13,9 @@ export class Comment extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Field(()=>String)
-    @Column()
-    content: string
+    @Field(()=>GraphQLJSONObject)
+    @Column({type: 'json'})
+    content: JSON
 
 
     @Field()

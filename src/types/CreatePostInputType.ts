@@ -1,3 +1,4 @@
+import { GraphQLJSONObject } from "graphql-type-json";
 import { Field, InputType } from "type-graphql";
 import { Category } from "./Category";
 
@@ -13,8 +14,8 @@ export class CreatePostInputType {
     @Field({nullable: true})
     thumbnail?: string
 
-    @Field(()=>String)
-    content: string
+    @Field(()=>GraphQLJSONObject)
+    content: JSON
 
     @Field(()=> Category)
     category: Category

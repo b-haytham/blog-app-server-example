@@ -127,7 +127,6 @@ export class postResolver {
             return new ApolloError(error)
         }
 
-        console.log(post);
         return post;
     }
 
@@ -225,7 +224,7 @@ export class postResolver {
             return new ApolloError("Post Do not Exist");
         }
 
-        console.log(p.comments);
+        
         return p;
     }
 

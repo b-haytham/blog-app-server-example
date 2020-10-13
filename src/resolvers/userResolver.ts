@@ -17,6 +17,8 @@ import { sendMail } from "../sendMail";
 import { COOKIE_NAME, FORGET_PASSWORD_PREFIX } from "../constants";
 import { isAuth } from "../isAuth";
 import { UpdateUserInputType } from "../types/UpdateUserInputType";
+import { GraphQLJSONObject } from "graphql-type-json";
+
 
 @Resolver(User)
 export class userResolver {
@@ -33,10 +35,9 @@ export class userResolver {
         //     .where("user.id = :id", { id: req.session.userId })
         //     .getOne();
 
-        console.log(user);
         return user;
     }
-
+    
     @Query(() => User)
     async getUser(@Arg("username") username: string) {
         const user = await User.findOne({ where: { username } });
@@ -84,7 +85,7 @@ export class userResolver {
             console.log("ERROR", error);
         }
 
-        console.log(user);
+        
         return user;
     }
 
@@ -199,7 +200,7 @@ export class userResolver {
         );
 
         await redis.del(key);
-        return true
+        return true;
     }
 
     @Mutation(() => Boolean)
@@ -215,5 +216,14 @@ export class userResolver {
                 resolve(true);
             });
         });
+    }
+
+    @Mutation(()=>Boolean)
+    async json(
+        @Arg('json', ()=>GraphQLJSONObject) json: JSON
+    ){
+        console.log(json)
+
+        return true
     }
 }

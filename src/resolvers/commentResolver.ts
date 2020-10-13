@@ -6,6 +6,7 @@ import { Post } from "../entities/Post";
 import { ApolloError } from "apollo-server-express";
 import { getConnection } from "typeorm";
 import { User } from "../entities/User";
+import { GraphQLJSONObject } from "graphql-type-json";
 
 
 @Resolver(Comment)
@@ -42,7 +43,7 @@ export class commentResolver{
     @UseMiddleware(isAuth)
     async updateComment(
         @Arg('commentId') commentId: number,
-        @Arg('content') content: string,
+        @Arg('content', ()=>GraphQLJSONObject) content: JSON,
         @Ctx() {req}: MyContext
     ){
         const comment =await Comment.findOne(commentId)
@@ -74,7 +75,7 @@ export class commentResolver{
     @UseMiddleware(isAuth)
     async createComment(
         @Arg('postId') postId: number,
-        @Arg('content') content: string,
+        @Arg('content', () => GraphQLJSONObject) content: JSON,
         @Ctx() {req}: MyContext
     ){
         const loggedInUserId = req.session.userId
